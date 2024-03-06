@@ -1,29 +1,24 @@
-import React from "react";
+import React from 'react';
+import PropTypes from 'prop-types';
 
-import Task from "../task/task";
-import PropTypes from "prop-types"
+import Task from '../task/task';
 
 const TaskList = ({ todos, onDeleted, onToggleCompleted, onToggleDeleted, onEditTask }) => {
-    const elements = todos.map((item) => {
-      const { id, ...itemProps } = item
-      return (
-          <Task
-          key = {id}
-          {...itemProps} 
-          onDeleted={() => onDeleted(id)}
-          onToggleCompleted={() => onToggleCompleted(id)}
-          onToggleDeleted={() => onToggleDeleted(id)}
-          onEditTask={(newLabel) => onEditTask(id, newLabel)}
-          />
-      );
-
-    });
-
+  const elements = todos.map((item) => {
+    const { id, ...itemProps } = item;
     return (
-      <ul className="todo-list">
-          {elements}
-      </ul>
+      <Task
+        key={id}
+        {...itemProps}
+        onDeleted={() => onDeleted(id)}
+        onToggleCompleted={() => onToggleCompleted(id)}
+        onToggleDeleted={() => onToggleDeleted(id)}
+        onEditTask={(newLabel) => onEditTask(id, newLabel)}
+      />
     );
+  });
+
+  return <ul className="todo-list">{elements}</ul>;
 };
 
 TaskList.propTypes = {
@@ -40,7 +35,6 @@ TaskList.defaultProps = {
   onToggleCompleted: () => {},
   onToggleDeleted: () => {},
   onEditTask: () => {},
-}
-
+};
 
 export default TaskList;
