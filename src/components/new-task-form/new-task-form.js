@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 export default class NewTaskForm extends Component {
   state = {
     label: '',
+    minutes: '',
+    seconds: '',
   };
 
   static propTypes = {
@@ -20,23 +22,55 @@ export default class NewTaskForm extends Component {
     });
   };
 
+  onMinutesChange = (event) => {
+    let minutes = event.target.value.replace(/\D/, '');
+    minutes = Math.min(parseInt(minutes, 10), 59);
+    this.setState({ minutes });
+  };
+
+  onSecondsChange = (event) => {
+    let seconds = event.target.value.replace(/\D/, '');
+    seconds = Math.min(parseInt(seconds, 10), 59);
+    this.setState({ seconds });
+  };
+
   onSubmit = (event) => {
     event.preventDefault();
-    this.props.addTask(this.state.label);
+    const { label, minutes, seconds } = this.state;
+    this.props.addTask(label, minutes, seconds);
     this.setState({
       label: '',
+      minutes: '',
+      seconds: '',
     });
   };
 
+  handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      this.onSubmit(event);
+    }
+  };
+
   render() {
+    const { label, minutes, seconds } = this.state;
     return (
-      <form onSubmit={this.onSubmit}>
+      <form className="new-todo-form" onSubmit={this.onSubmit}>
+        <input className="new-todo" placeholder="Task" onChange={this.onLabelChange} autoFocus value={label} />
         <input
-          className="new-todo"
-          placeholder="What needs to be done?"
-          onChange={this.onLabelChange}
-          autoFocus
-          value={this.state.label}
+          className="new-todo-form__timer"
+          placeholder="min"
+          maxLength="2"
+          value={minutes}
+          onChange={this.onMinutesChange}
+          onKeyDown={this.handleKeyDown}
+        />
+        <input
+          className="new-todo-form__timer"
+          placeholder="sec"
+          maxLength="2"
+          value={seconds}
+          onChange={this.onSecondsChange}
+          onKeyDown={this.handleKeyDown}
         />
       </form>
     );

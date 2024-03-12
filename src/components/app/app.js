@@ -11,14 +11,18 @@ export default class App extends Component {
   state = {
     todoData: [],
     filter: 'all',
+    isTimerOn: false,
   };
 
-  createTask(label) {
+  createTask(label, minutes, seconds) {
     return {
       label,
       completed: false,
       id: this.maxId++,
       createdAt: new Date(),
+      minutes,
+      seconds,
+      isTimerRunning: false,
     };
   }
 
@@ -33,8 +37,8 @@ export default class App extends Component {
     });
   };
 
-  addTask = (text) => {
-    const newTask = this.createTask(text);
+  addTask = (text, minutes, seconds) => {
+    const newTask = this.createTask(text, minutes, seconds);
 
     this.setState(({ todoData }) => {
       const newArr = [...todoData, newTask];
@@ -98,6 +102,51 @@ export default class App extends Component {
     }));
   };
 
+  startTimer = (id, minutes, seconds) => {
+    const task = this.state.todoData.find((task) => task.id === id);
+    if (!task.isTimerRunning) {
+      this.setState((prevState) => ({
+        todoData: prevState.todoData.map((task) => {
+          if (task.id === id) {
+            return { ...task, minutes, seconds, isTimerRunning: true };
+          }
+          return task;
+        }),
+        isTimerOn: true,
+      }));
+
+      this.timerID = setInterval(() => {
+        this.setState((prevState) => {
+          const idx = prevState.todoData.findIndex((elem) => elem.id === id);
+          if (idx === -1) {
+            clearInterval(this.timerID);
+            return { ...prevState, isTimerOn: false };
+          }
+          const oldItem = prevState.todoData[idx];
+          let newItem = { ...oldItem, seconds: oldItem.seconds - 1 };
+          if (newItem.seconds < 0) {
+            newItem = { ...newItem, minutes: oldItem.minutes - 1, seconds: 59 };
+          }
+          if (newItem.seconds === 0 && newItem.minutes === 0) {
+            clearInterval(this.timerID);
+            return { ...prevState, isTimerOn: false };
+          }
+          const todoDataCopy = [...prevState.todoData];
+          todoDataCopy[idx] = newItem;
+          return { todoData: todoDataCopy };
+        });
+      }, 1000);
+    }
+  };
+
+  pauseTimer = (id) => {
+    clearInterval(this.timerID);
+    this.setState((prevState) => ({
+      todoData: prevState.todoData.map((task) => (task.id === id ? { ...task, isTimerRunning: false } : task)),
+      isTimerOn: false,
+    }));
+  };
+
   render() {
     const { todoData, filter } = this.state;
 
@@ -115,6 +164,8 @@ export default class App extends Component {
             onToggleCompleted={this.onToggleCompleted}
             onToggleDeleted={this.deleteTask}
             onEditTask={this.editTask}
+            startTimer={(id, minutes, seconds) => this.startTimer(id, minutes, seconds)}
+            pauseTimer={() => this.pauseTimer()}
           />
           <Footer
             todoCount={todoCount}

@@ -16,6 +16,10 @@ export default class Task extends Component {
     onToggleDeleted: PropTypes.func.isRequired,
     createdAt: PropTypes.instanceOf(Date),
     onEditTask: PropTypes.func.isRequired,
+    minutes: PropTypes.number.isRequired,
+    seconds: PropTypes.number.isRequired,
+    startTimer: PropTypes.func.isRequired,
+    pauseTimer: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
@@ -25,6 +29,10 @@ export default class Task extends Component {
     onToggleDeleted: () => {},
     createdAt: new Date(),
     onEditTask: () => {},
+    minutes: 0,
+    seconds: 0,
+    startTimer: () => {},
+    pauseTimer: () => {},
   };
 
   editClick = () => {
@@ -41,23 +49,37 @@ export default class Task extends Component {
     this.setState({ editing: false });
   };
 
+  // componentDidMount() {
+  //   this.timerID = setInterval(() => {
+  //     this.setState({
+  //       createdAt: this.props.createdAt,
+  //     });
+  //   }, 60000);
+  // }
+
+  startTimer = () => {
+    const { id, minutes, seconds, startTimer } = this.props;
+    startTimer(id, minutes, seconds);
+  };
+
+  pauseTimer = () => {
+    const { pauseTimer } = this.props;
+    pauseTimer();
+  };
+
   componentDidMount() {
-    this.timerID = setInterval(() => {
-      this.setState({
-        createdAt: this.props.createdAt,
-      });
-    }, 60000);
+    this.startTimer();
   }
 
   componentWillUnmount() {
-    clearInterval(this.timerID);
+    this.pauseTimer();
   }
 
   render() {
-    const { label, completed, onToggleCompleted, onToggleDeleted, createdAt } = this.props;
+    const { label, completed, onToggleCompleted, onToggleDeleted, createdAt, minutes, seconds } = this.props;
     const { editing, editedLabel } = this.state;
 
-    let classNames = 'description';
+    let classNames = 'title';
     if (completed) {
       classNames += ' completed';
     }
@@ -69,8 +91,13 @@ export default class Task extends Component {
         <div className="view">
           <input className="toggle" type="checkbox" onChange={onToggleCompleted} checked={completed} />
           <label>
-            <span className={classNames}> {label} </span>
-            <span className="created">created {distance} ago</span>
+            <span className={classNames}>{label}</span>
+            <span className="description">
+              <button className="icon icon-play" onClick={this.startTimer}></button>
+              <button className="icon icon-pause" onClick={this.pauseTimer}></button>
+              {`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`}
+            </span>
+            <span className="description">created {distance} ago</span>
           </label>
           <button className="icon icon-edit" onClick={this.editClick}></button>
           <button className="icon icon-destroy" onClick={onToggleDeleted}></button>

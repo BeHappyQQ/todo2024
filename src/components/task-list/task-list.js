@@ -3,17 +3,21 @@ import PropTypes from 'prop-types';
 
 import Task from '../task/task';
 
-const TaskList = ({ todos, onDeleted, onToggleCompleted, onToggleDeleted, onEditTask }) => {
+const TaskList = ({ todos, onDeleted, onToggleCompleted, onToggleDeleted, onEditTask, startTimer, pauseTimer }) => {
   const elements = todos.map((item) => {
-    const { id, ...itemProps } = item;
+    const { id, minutes, seconds, ...itemProps } = item;
     return (
       <Task
         key={id}
         {...itemProps}
+        minutes={minutes}
+        seconds={seconds}
         onDeleted={() => onDeleted(id)}
         onToggleCompleted={() => onToggleCompleted(id)}
         onToggleDeleted={() => onToggleDeleted(id)}
         onEditTask={(newLabel) => onEditTask(id, newLabel)}
+        startTimer={() => startTimer(id, minutes, seconds)}
+        pauseTimer={() => pauseTimer(id)}
       />
     );
   });
@@ -27,6 +31,8 @@ TaskList.propTypes = {
   onToggleCompleted: PropTypes.func.isRequired,
   onToggleDeleted: PropTypes.func.isRequired,
   onEditTask: PropTypes.func.isRequired,
+  onStartTimer: PropTypes.func.isRequired,
+  onPauseTimer: PropTypes.func.isRequired,
 };
 
 TaskList.defaultProps = {
@@ -35,6 +41,8 @@ TaskList.defaultProps = {
   onToggleCompleted: () => {},
   onToggleDeleted: () => {},
   onEditTask: () => {},
+  onStartTimer: () => {},
+  onPauseTimer: () => {},
 };
 
 export default TaskList;

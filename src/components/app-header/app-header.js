@@ -7,7 +7,7 @@ const AppHeader = ({ addTask }) => {
   return (
     <header className="header">
       <h1>todos</h1>
-      <NewTaskForm addTask={(text) => addTask(text)} />
+      <NewTaskForm addTask={(text, minutes, seconds) => addTask(text, minutes, seconds)} />
     </header>
   );
 };
