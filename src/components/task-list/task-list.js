@@ -12,6 +12,7 @@ const TaskList = ({ todos, onDeleted, onToggleCompleted, onToggleDeleted, onEdit
         {...itemProps}
         minutes={minutes}
         seconds={seconds}
+        id={id}
         onDeleted={() => onDeleted(id)}
         onToggleCompleted={() => onToggleCompleted(id)}
         onToggleDeleted={() => onToggleDeleted(id)}
@@ -41,8 +42,8 @@ TaskList.defaultProps = {
   onToggleCompleted: () => {},
   onToggleDeleted: () => {},
   onEditTask: () => {},
-  onStartTimer: () => {},
-  onPauseTimer: () => {},
+  startTimer: () => {},
+  pauseTimer: () => {},
 };
 
 export default TaskList;

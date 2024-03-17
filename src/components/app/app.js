@@ -1,81 +1,60 @@
-import React, { Component } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect } from 'react';
 
 import AppHeader from '../app-header/app-header';
 import TaskList from '../task-list/task-list';
 import Footer from '../footer/footer';
 import './indexs.css';
 
-export default class App extends Component {
-  maxId = 1;
+const App = () => {
+  let maxId = 1;
 
-  state = {
-    todoData: [],
-    filter: 'all',
-    isTimerOn: false,
-  };
+  const [todoData, setTodoData] = useState([]);
+  const [filter, setFilter] = useState('all');
+  const [isTimerOn, setTimerOn] = useState(false);
 
-  createTask(label, minutes, seconds) {
+  const createTask = (label, minutes, seconds) => {
     return {
       label,
       completed: false,
-      id: this.maxId++,
+      id: maxId++,
       createdAt: new Date(),
       minutes,
       seconds,
-      isTimerRunning: false,
+      isTimerRunning: true,
     };
-  }
-
-  deleteTask = (id) => {
-    this.setState(({ todoData }) => {
-      const idx = todoData.findIndex((el) => el.id === id);
-      const newArray = [...todoData.slice(0, idx), ...todoData.slice(idx + 1)];
-
-      return {
-        todoData: newArray,
-      };
-    });
   };
 
-  addTask = (text, minutes, seconds) => {
-    const newTask = this.createTask(text, minutes, seconds);
-
-    this.setState(({ todoData }) => {
-      const newArr = [...todoData, newTask];
-
-      return {
-        todoData: newArr,
-      };
-    });
+  const deleteTask = (id) => {
+    const idx = todoData.findIndex((el) => el.id === id);
+    const newArray = [...todoData.slice(0, idx), ...todoData.slice(idx + 1)];
+    setTodoData(newArray);
   };
 
-  toggleProperty(arr, id, propName) {
+  const addTask = (text, minutes, seconds) => {
+    const newTask = createTask(text, minutes, seconds);
+    setTodoData((prevTodoData) => [...prevTodoData, newTask]);
+  };
+
+  const toggleProperty = (arr, id, propName) => {
     const idx = arr.findIndex((el) => el.id === id);
 
-    // update object
     const oldTask = arr[idx];
     const newTask = { ...oldTask, [propName]: !oldTask[propName] };
 
-    //construct new array
     const newArr = [...arr.slice(0, idx), newTask, ...arr.slice(idx + 1)];
     return newArr;
-  }
-
-  onToggleCompleted = (id) => {
-    this.setState(({ todoData }) => {
-      return {
-        todoData: this.toggleProperty(todoData, id, 'completed'),
-      };
-    });
   };
 
-  changeFilter = (filter) => {
-    this.setState({ filter });
+  const onToggleCompleted = (id) => {
+    setTodoData(toggleProperty(todoData, id, 'completed'));
   };
 
-  getFilteredTasks = () => {
-    const { todoData, filter } = this.state;
+  const changeFilter = (filter) => {
+    setFilter(filter);
+  };
 
+  const getFilteredTasks = () => {
     if (filter === 'all') {
       return todoData;
     } else if (filter === 'completed') {
@@ -85,96 +64,92 @@ export default class App extends Component {
     }
   };
 
-  clearCompleted = () => {
-    this.setState(({ todoData }) => ({
-      todoData: todoData.filter((task) => !task.completed),
-    }));
+  const clearCompleted = () => {
+    setTodoData(todoData.filter((task) => !task.completed));
   };
 
-  editTask = (id, newLabel) => {
-    this.setState(({ todoData }) => ({
-      todoData: todoData.map((task) => {
-        if (task.id === id) {
-          return { ...task, label: newLabel };
-        }
-        return task;
-      }),
-    }));
+  const editTask = (id, newLabel) => {
+    const newArr = todoData.map((task) => {
+      if (task.id === id) {
+        return { ...task, label: newLabel };
+      }
+      return task;
+    });
+    setTodoData(newArr);
   };
 
-  startTimer = (id, minutes, seconds) => {
-    const task = this.state.todoData.find((task) => task.id === id);
-    if (!task.isTimerRunning) {
-      this.setState((prevState) => ({
-        todoData: prevState.todoData.map((task) => {
-          if (task.id === id) {
-            return { ...task, minutes, seconds, isTimerRunning: true };
-          }
-          return task;
-        }),
-        isTimerOn: true,
-      }));
+  const startTimer = (id, minutes, seconds) => {
+    setTimerOn(true);
+  };
 
-      this.timerID = setInterval(() => {
-        this.setState((prevState) => {
-          const idx = prevState.todoData.findIndex((elem) => elem.id === id);
-          if (idx === -1) {
-            clearInterval(this.timerID);
-            return { ...prevState, isTimerOn: false };
-          }
-          const oldItem = prevState.todoData[idx];
-          let newItem = { ...oldItem, seconds: oldItem.seconds - 1 };
-          if (newItem.seconds < 0) {
-            newItem = { ...newItem, minutes: oldItem.minutes - 1, seconds: 59 };
-          }
-          if (newItem.seconds === 0 && newItem.minutes === 0) {
-            clearInterval(this.timerID);
-            return { ...prevState, isTimerOn: false };
-          }
-          const todoDataCopy = [...prevState.todoData];
-          todoDataCopy[idx] = newItem;
-          return { todoData: todoDataCopy };
-        });
+  const pauseTimer = () => {
+    setTimerOn(false);
+  };
+
+  useEffect(() => {
+    let timerID;
+
+    const runTimer = () => {
+      timerID = setInterval(() => {
+        setTodoData((prevTodoData) =>
+          prevTodoData.map((task) => {
+            if (task.isTimerRunning) {
+              let updatedMinutes = task.minutes;
+              let updatedSeconds = task.seconds - 1;
+
+              if (updatedSeconds < 0) {
+                updatedMinutes -= 1;
+                updatedSeconds = 59;
+              }
+
+              if (updatedMinutes === 0 && updatedSeconds === 0) {
+                return { ...task, isTimerRunning: false };
+              }
+
+              return { ...task, minutes: updatedMinutes, seconds: updatedSeconds };
+            }
+            return task;
+          })
+        );
       }, 1000);
+    };
+
+    const clearTimer = () => {
+      clearInterval(timerID);
+    };
+
+    if (isTimerOn) {
+      runTimer();
+    } else {
+      clearTimer();
     }
-  };
 
-  pauseTimer = (id) => {
-    clearInterval(this.timerID);
-    this.setState((prevState) => ({
-      todoData: prevState.todoData.map((task) => (task.id === id ? { ...task, isTimerRunning: false } : task)),
-      isTimerOn: false,
-    }));
-  };
+    return () => {
+      clearTimer();
+    };
+  }, [isTimerOn]);
 
-  render() {
-    const { todoData, filter } = this.state;
+  const completedCount = todoData.filter((el) => el.completed).length;
+  const todoCount = todoData.length - completedCount;
+  const filteredTasks = getFilteredTasks();
 
-    const completedCount = todoData.filter((el) => el.completed).length;
-    const todoCount = todoData.length - completedCount;
-    const filteredTasks = this.getFilteredTasks();
-
-    return (
-      <section className="todoapp">
-        <AppHeader addTask={this.addTask}></AppHeader>
-        <section className="main">
-          <TaskList
-            todos={filteredTasks}
-            onDeleted={this.deleteTask}
-            onToggleCompleted={this.onToggleCompleted}
-            onToggleDeleted={this.deleteTask}
-            onEditTask={this.editTask}
-            startTimer={(id, minutes, seconds) => this.startTimer(id, minutes, seconds)}
-            pauseTimer={() => this.pauseTimer()}
-          />
-          <Footer
-            todoCount={todoCount}
-            filter={filter}
-            onFilterChange={this.changeFilter}
-            onClearCompleted={this.clearCompleted}
-          />
-        </section>
+  return (
+    <section className="todoapp">
+      <AppHeader addTask={addTask}></AppHeader>
+      <section className="main">
+        <TaskList
+          todos={filteredTasks}
+          onDeleted={deleteTask}
+          onToggleCompleted={onToggleCompleted}
+          onToggleDeleted={deleteTask}
+          onEditTask={editTask}
+          startTimer={startTimer}
+          pauseTimer={pauseTimer}
+        />
+        <Footer todoCount={todoCount} filter={filter} onFilterChange={changeFilter} onClearCompleted={clearCompleted} />
       </section>
-    );
-  }
-}
+    </section>
+  );
+};
+
+export default App;
